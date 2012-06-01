@@ -26,11 +26,32 @@ class RemoteMethod(object):
         )
 
 class FailedRequest(Exception):
-    def __init__(self, error):
-        self.error = error
+    def __init__(self, response):
+        self.error = response.error
     
     def __str__(self):
         return repr(self.error)
+
+class GeneralError(FailedRequest): pass
+
+class AuthenticationError(FailedRequest): pass
+
+class AuthorizationError(FailedRequest): pass
+
+class ValidationError(FailedRequest):
+    def __init__(self, response):
+        super(ValidationError, self).__init__(response)
+        self.code = response.code
+        self.field = response.field
+
+    def __str__(self):
+        return "[%s] %s: %s" % (
+            repr(self.code),
+            repr(self.field),
+            repr(self.error),
+        )
+
+class ProcessingError(FailedRequest): pass
 
 class Client(object):
     """The Freshbooks API client. Callers should use one of the factory

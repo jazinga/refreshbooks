@@ -92,7 +92,39 @@ def xml_request(method, **params):
     return etree.tostring(request_document)
 
 def fail_to_exception_response(response):
+    """
+        From Freshbooks post: https://groups.google.com/forum/?fromgroups#!searchin/freshbooks-api/error$20code/freshbooks-api/rVMjUxBt9UA/-aA3bGcFDakJ
+
+        Hi Kirill. We haven't posted the list of API error codes yet as 
+        they're not 100% finalized. But I can tell you that in general the 
+        ranges span: 
+
+        Codes starting with 1 are general errors. 
+        Codes starting with 2 are authentication errors. 
+        Codes starting with 3 are authorization errors. 
+        Codes starting with 4 are validation errors. 
+        Codes starting with 5 are processing errors. 
+
+        Cheers, 
+        Nox Dineen | FreshBooks 
+    """
     if response.attrib['status'] == 'fail':
-        raise client.FailedRequest(response.error)
+        code = repr(response.code)
+        if code.startswith('1'):
+            raise client.GeneralError(response)
+
+        elif code.startswith('2'):
+            raise client.AuthenticationError(response)
+
+        elif code.startswith('3'):
+            raise client.AuthorizationError(response)
+
+        elif code.startswith('4'):
+            raise client.ValidationError(response)
+
+        elif code.startswith('5'):
+            raise client.ProcessingError(response)
+
+        raise client.FailedRequest(response)
     
     return response
