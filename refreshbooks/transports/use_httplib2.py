@@ -2,14 +2,14 @@ import httplib2
 
 from refreshbooks import exceptions as exc
 
+
 class Transport(object):
-    def __init__(self, url, headers_factory):
-        self.client = httplib2.Http()
+    def __init__(self, url, headers_factory, timeout=10):
+        self.client = httplib2.Http(timeout=timeout)
         self.url = url
         self.headers_factory = headers_factory
-    
+
     def __call__(self, entity):
-        
         resp, content = self.client.request(
             self.url,
             'POST',
@@ -18,5 +18,5 @@ class Transport(object):
         )
         if resp.status >= 400:
             raise exc.TransportException(resp.status, content)
-        
+
         return content

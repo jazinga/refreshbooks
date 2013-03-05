@@ -72,22 +72,23 @@ def AuthorizingClient(
     auth,
     request_encoder,
     response_decoder,
-    user_agent=None
+    user_agent=None,
+    timeout=10,
 ):
     """Creates a Freshbooks client for a freshbooks domain, using
     an auth object.
     """
-    
     http_transport = transport.HttpTransport(
         api_url(domain),
-        build_headers(auth, user_agent)
+        build_headers(auth, user_agent),
+        timeout=timeout,
     )
-    
     return client.Client(
         request_encoder,
         http_transport,
         response_decoder
     )
+
 
 def TokenClient(
     domain,
@@ -95,26 +96,27 @@ def TokenClient(
     user_agent=None,
     request_encoder=default_request_encoder,
     response_decoder=default_response_decoder,
+    timeout=10,
 ):
     """Creates a Freshbooks client for a freshbooks domain, using
     token-based auth.
-    
+
     The optional request_encoder and response_decoder parameters can be
     passed the logging_request_encoder and logging_response_decoder objects
     from this module, or custom encoders, to aid debugging or change the
     behaviour of refreshbooks' request-to-XML-to-response mapping.
-    
+
     The optional user_agent keyword parameter can be used to specify the
     user agent string passed to FreshBooks. If unset, a default user agent
     string is used.
     """
-    
     return AuthorizingClient(
         domain,
         transport.TokenAuthorization(token),
         request_encoder,
         response_decoder,
-        user_agent=user_agent
+        user_agent=user_agent,
+        timeout=timeout,
     )
 
 def OAuthClient(
@@ -129,12 +131,12 @@ def OAuthClient(
 ):
     """Creates a Freshbooks client for a freshbooks domain, using
     OAuth. Token management is assumed to have been handled out of band.
-    
+
     The optional request_encoder and response_decoder parameters can be
     passed the logging_request_encoder and logging_response_decoder objects
     from this module, or custom encoders, to aid debugging or change the
     behaviour of refreshbooks' request-to-XML-to-response mapping.
-    
+
     The optional user_agent keyword parameter can be used to specify the
     user agent string passed to FreshBooks. If unset, a default user agent
     string is used.
@@ -154,7 +156,7 @@ def OAuthClient(
 def list_element_type(_name, **kwargs):
     """Convenience function for creating tuples that satisfy
     adapters.encode_as_list_of_dicts().
-    
+
         >>> list_element_type('foo', a='5')
         ('foo', {'a': '5'})
     """
@@ -162,14 +164,14 @@ def list_element_type(_name, **kwargs):
 
 class Types(object):
     """Convenience factory for list elements in API requests.
-    
+
         >>> types = Types()
         >>> types.line(id="5")
         ('line', {'id': '5'})
-    
+
     A module-scoped instance is available as refreshbooks.api.types.
     """
-    
+
     def __getattr__(self, name):
         return functools.partial(list_element_type, name)
 
